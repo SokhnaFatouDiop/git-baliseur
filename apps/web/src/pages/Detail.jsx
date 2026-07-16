@@ -1,6 +1,7 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import styles from "./Detail.module.css";
 import BoutonInscription from "../components/BoutonInscription";
+import { supabase } from "../lib/supabase";
 
 const Detail = ({ evenements, session }) => {
   const { id } = useParams();
@@ -19,6 +20,22 @@ const Detail = ({ evenements, session }) => {
 
   const prix = evenement.prix === 0 ? "Gratuit" : `${evenement.prix} FCFA`;
   const date = new Date(evenement.date_debut).toLocaleString("fr-FR");
+
+  const supprimer = async () => {
+    const confirme = window.confirm("Supprimer cet evenement ?");
+    if (!confirme) return;
+
+    const { error } = await supabase
+      .from("evenements")
+      .delete()
+      .eq("id", evenement.id);
+
+    if (error) {
+      alert("Erreur : " + error.message);
+    } else {
+      navigate("/");
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -43,6 +60,12 @@ const Detail = ({ evenements, session }) => {
         <dt>Date</dt><dd>{date}</dd>
         <dt>Prix</dt><dd className={styles.prix}>{prix}</dd>
       </dl>
+
+      {session && evenement.organisateur_id && String(session.user.id) === String(evenement.organisateur_id) && (
+        <button onClick={supprimer} className={styles.supprimer}>
+          Supprimer cet evenement
+        </button>
+      )}
     </div>
   );
 };
