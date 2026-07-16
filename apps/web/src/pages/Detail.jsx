@@ -1,7 +1,8 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import styles from "./Detail.module.css";
+import BoutonInscription from "../components/BoutonInscription";
 
-const Detail = ({ evenements }) => {
+const Detail = ({ evenements, session }) => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -24,6 +25,7 @@ const Detail = ({ evenements }) => {
       <button onClick={() => navigate(-1)} className={styles.retour}>
         &lt;- Retour
       </button>
+      <BoutonInscription evenementId={evenement.id} session={session} />
 
       <h1 className={styles.titre}>{evenement.titre}</h1>
       <p className={styles.meta}>

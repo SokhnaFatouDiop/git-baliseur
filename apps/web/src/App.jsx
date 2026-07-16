@@ -62,7 +62,10 @@ const App = () => {
   path="/nouveau"
   element={<NouvelEvenement onAjoutReussi={charger} />}
 />
-        <Route path="/evenement/:id" element={<Detail evenements={evenements} />} />
+        <Route
+  path="/evenement/:id"
+  element={<Detail evenements={evenements} session={session} />}
+/>
         <Route path="/auth" element={<Auth />} />
       </Routes>
     </BrowserRouter>
