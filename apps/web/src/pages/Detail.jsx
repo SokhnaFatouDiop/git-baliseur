@@ -59,6 +59,8 @@ const Detail = ({ evenements, session }) => {
         <dt>Lieu</dt><dd>{evenement.lieu_nom}</dd>
         <dt>Date</dt><dd>{date}</dd>
         <dt>Prix</dt><dd className={styles.prix}>{prix}</dd>
+        <dt>Organise par</dt>
+        <dd>{evenement.profiles ? evenement.profiles.nom : "Equipe SenEvent"}</dd>
       </dl>
 
       {session && evenement.organisateur_id && String(session.user.id) === String(evenement.organisateur_id) && (

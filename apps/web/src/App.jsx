@@ -28,28 +28,24 @@ const App = () => {
   }, []);
 
   const charger = async () => {
-  setChargement(true);
-  setErreur(null);
+    setChargement(true);
+    setErreur(null);
 
-  const { data, error } = await supabase
-    .from("evenements")
-    .select("*")
-    .order("date_debut", { ascending: true });
+    const { data, error } = await supabase
+      .from("evenements")
+      .select("*, profiles (nom)")
+      .order("date_debut", { ascending: true });
 
-  if (error) {
-    setErreur(error.message);
-  } else {
-    setEvenements(data);
-  }
+    if (error) {
+      setErreur(error.message);
+    } else {
+      setEvenements(data);
+    }
 
-  setChargement(false);
-};
+    setChargement(false);
+  };
 
   useEffect(() => { charger(); }, []);
-
-  const ajouterEvenement = (nouvel) => {
-    setEvenements(precedents => [nouvel, ...precedents]);
-  };
 
   return (
     <BrowserRouter>
@@ -59,13 +55,13 @@ const App = () => {
           <Accueil evenements={evenements} chargement={chargement} erreur={erreur} onReessayer={charger} />
         } />
         <Route
-  path="/nouveau"
-  element={<NouvelEvenement onAjoutReussi={charger} />}
-/>
+          path="/nouveau"
+          element={<NouvelEvenement onAjoutReussi={charger} />}
+        />
         <Route
-  path="/evenement/:id"
-  element={<Detail evenements={evenements} session={session} />}
-/>
+          path="/evenement/:id"
+          element={<Detail evenements={evenements} session={session} />}
+        />
         <Route path="/auth" element={<Auth />} />
       </Routes>
     </BrowserRouter>
