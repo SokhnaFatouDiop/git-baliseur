@@ -1,61 +1,25 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
-import styles from "./BoutonInscription.module.css";
+import { useState } from "react";
+import { inscrireAEvenement } from "@senevent/shared";
 
-const BoutonInscription = ({ evenementId, session }) => {
+const BoutonInscription = ({ evenementId, userId }) => {
   const [inscrit, setInscrit] = useState(false);
-  const [chargement, setChargement] = useState(true);
+  const [chargement, setChargement] = useState(false);
 
-  useEffect(() => {
-    const verifier = async () => {
-      if (!session) {
-        setChargement(false);
-        return;
-      }
-      const { data } = await supabase
-        .from("inscriptions")
-        .select("id")
-        .eq("evenement_id", evenementId)
-        .eq("utilisateur_id", session.user.id);
-
-      setInscrit(data && data.length > 0);
+  const handleInscription = async () => {
+    setChargement(true);
+    try {
+      await inscrireAEvenement(evenementId, userId);
+      setInscrit(true);
+    } catch (err) {
+      alert(err.message);
+    } finally {
       setChargement(false);
-    };
-    verifier();
-  }, [evenementId, session]);
-
-  const sInscrire = async () => {
-    const { error } = await supabase.from("inscriptions").insert({
-      evenement_id: evenementId,
-      utilisateur_id: session.user.id,
-    });
-    if (!error) setInscrit(true);
+    }
   };
 
-  const seDesinscrire = async () => {
-    const { error } = await supabase
-      .from("inscriptions")
-      .delete()
-      .eq("evenement_id", evenementId)
-      .eq("utilisateur_id", session.user.id);
-    if (!error) setInscrit(false);
-  };
-
-  if (!session) {
-    return <p className={styles.info}>Connectez-vous pour vous inscrire.</p>;
-  }
-
-  if (chargement) {
-    return <p className={styles.info}>...</p>;
-  }
-
-  return inscrit ? (
-    <button onClick={seDesinscrire} className={styles.desinscrire}>
-      Se desinscrire
-    </button>
-  ) : (
-    <button onClick={sInscrire} className={styles.inscrire}>
-      S'inscrire
+  return (
+    <button onClick={handleInscription} disabled={inscrit || chargement}>
+      {chargement ? "Inscription..." : inscrit ? "Inscrit !" : "S'inscrire"}
     </button>
   );
 };
