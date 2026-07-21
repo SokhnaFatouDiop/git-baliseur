@@ -1,14 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { initSupabase } from "@senevent/shared";
-import { initSupabase } from "@senevent/shared";
 import App from "./App.jsx";
 import "./index.css";
 
-// Initialisation de Supabase avec les variables d'environnement Vite
+// Initialisation de Supabase avec les variables Vite
 initSupabase(
-  import.meta.env.VITE_SUPABASE_URL || "",
-  import.meta.env.VITE_SUPABASE_ANON_KEY || ""
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
 createRoot(document.getElementById("root")).render(
