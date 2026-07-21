@@ -1,4 +1,5 @@
-export type Categorie = "concert" | "expo" | "conference" | "atelier" | "soutenance";
+export type Categorie =
+  | "concert" | "expo" | "conference" | "atelier" | "soutenance";
 
 export interface Evenement {
   id: number;
@@ -10,7 +11,6 @@ export interface Evenement {
   image_url: string | null;
   organisateur_id: string | null;
   created_at: string;
-  profiles?: { nom: string } | null;
 }
 
 export interface NouvelEvenementInput {
