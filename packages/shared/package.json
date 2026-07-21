@@ -6,8 +6,5 @@
   "types": "src/index.ts",
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0"
-  },
-  "devDependencies": {
-    "typescript": "^7.0.2"
   }
 }
