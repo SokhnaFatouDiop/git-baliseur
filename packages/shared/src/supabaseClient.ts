@@ -1,10 +1,19 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+let client: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export function initSupabase(url: string, anonKey: string): SupabaseClient {
+  if (!client) {
+    client = createClient(url, anonKey);
+  }
+  return client;
+}
 
-export function getSupabase() {
-  return supabase;
+export function getSupabase(): SupabaseClient {
+  if (!client) {
+    throw new Error(
+      "Supabase non initialise. Appelez initSupabase(url, key) au demarrage."
+    );
+  }
+  return client;
 }
