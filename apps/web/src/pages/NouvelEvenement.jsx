@@ -1,124 +1,63 @@
 import { useState } from "react";
-import styles from "./NouvelEvenement.module.css";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { creerEvenement, getSupabase } from "@senevent/shared";
 
 const NouvelEvenement = ({ onAjoutReussi }) => {
-  const [titre, setTitre] = useState("");
-  const [categorie, setCategorie] = useState("concert");
-  const [lieu, setLieu] = useState("");
-  const [prix, setPrix] = useState(0);
-  const [erreurs, setErreurs] = useState({});
-  const [erreurServeur, setErreurServeur] = useState(null);
-  const [enCours, setEnCours] = useState(false);
   const navigate = useNavigate();
+  const [form, setForm] = useState({
+    titre: "",
+    categorie: "concert",
+    lieu_nom: "",
+    date_debut: "",
+    prix: 0,
+    image_url: "",
+  });
+  const [erreur, setErreur] = useState(null);
+  const [chargement, setChargement] = useState(false);
 
-  const valider = () => {
-    const e = {};
-    if (titre.trim().length < 3) {
-      e.titre = "Le titre doit contenir au moins 3 caracteres.";
-    }
-    if (lieu.trim().length < 2) {
-      e.lieu = "Le lieu est requis.";
-    }
-    if (prix < 0) {
-      e.prix = "Le prix ne peut pas etre negatif.";
-    }
-    return e;
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const soumettre = async (event) => {
-    event.preventDefault();
-    setErreurServeur(null);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setChargement(true);
+    setErreur(null);
 
-    const erreursTrouvees = valider();
-    if (Object.keys(erreursTrouvees).length > 0) {
-      setErreurs(erreursTrouvees);
-      return;
-    }
+    try {
+      const { data: { user } } = await getSupabase().auth.getUser();
+      if (!user) throw new Error("Vous devez être connecté.");
 
-    setEnCours(true);
+      await creerEvenement({
+        ...form,
+        prix: Number(form.prix),
+        organisateur_id: user.id,
+      });
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setErreurServeur("Vous devez etre connecte.");
-      setEnCours(false);
-      return;
-    }
-
-    const { error } = await supabase.from("evenements").insert({
-      titre: titre.trim(),
-      categorie,
-      lieu_nom: lieu.trim(),
-      prix: Number(prix),
-      date_debut: new Date().toISOString(),
-      organisateur_id: user.id,
-    });
-
-    setEnCours(false);
-
-    if (error) {
-      setErreurServeur(error.message);
-    } else {
-      onAjoutReussi();
+      if (onAjoutReussi) onAjoutReussi();
       navigate("/");
+    } catch (err) {
+      setErreur(err.message);
+    } finally {
+      setChargement(false);
     }
   };
 
   return (
-    <form className={styles.form} onSubmit={soumettre}>
-      <h2>Ajouter un evenement</h2>
-
-      <label className={styles.champ}>
-        Titre
-        <input
-          type="text"
-          value={titre}
-          onChange={e => setTitre(e.target.value)}
-        />
-        {erreurs.titre && <span className={styles.erreur}>{erreurs.titre}</span>}
-      </label>
-
-      <label className={styles.champ}>
-        Categorie
-        <select value={categorie} onChange={e => setCategorie(e.target.value)}>
-          <option value="concert">Concert</option>
-          <option value="expo">Exposition</option>
-          <option value="conference">Conference</option>
-          <option value="atelier">Atelier</option>
-          <option value="soutenance">Soutenance</option>
-        </select>
-      </label>
-
-      <label className={styles.champ}>
-        Lieu
-        <input
-          type="text"
-          value={lieu}
-          onChange={e => setLieu(e.target.value)}
-        />
-        {erreurs.lieu && <span className={styles.erreur}>{erreurs.lieu}</span>}
-      </label>
-
-      <label className={styles.champ}>
-        Prix (FCFA, 0 pour gratuit)
-        <input
-          type="number"
-          min="0"
-          value={prix}
-          onChange={e => setPrix(e.target.value)}
-        />
-        {erreurs.prix && <span className={styles.erreur}>{erreurs.prix}</span>}
-      </label>
-
-      {erreurServeur && (
-        <p className={styles.erreur}>Erreur : {erreurServeur}</p>
-      )}
-
-      <button type="submit" disabled={enCours} className={styles.bouton}>
-        {enCours ? "Envoi..." : "Ajouter"}
-      </button>
-    </form>
+    <div style={{ padding: "20px" }}>
+      <h2>Créer un événement</h2>
+      {erreur && <p style={{ color: "red" }}>{erreur}</p>}
+      <form onSubmit={handleSubmit}>
+        <input name="titre" placeholder="Titre" onChange={handleChange} required />
+        <input name="lieu_nom" placeholder="Lieu" onChange={handleChange} required />
+        <input name="date_debut" type="datetime-local" onChange={handleChange} required />
+        <input name="prix" type="number" placeholder="Prix" onChange={handleChange} required />
+        <input name="image_url" placeholder="URL Image" onChange={handleChange} />
+        <button type="submit" disabled={chargement}>
+          {chargement ? "Création..." : "Créer"}
+        </button>
+      </form>
+    </div>
   );
 };
 

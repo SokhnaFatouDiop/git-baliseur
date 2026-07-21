@@ -1,100 +1,42 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
-import styles from "./Auth.module.css";
+import { seConnecter, sInscrire } from "@senevent/shared";
 
 const Auth = () => {
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
-  const [motDePasse, setMotDePasse] = useState("");
-  const [nom, setNom] = useState("");
+  const [password, setPassword] = useState("");
   const [erreur, setErreur] = useState(null);
-  const [enCours, setEnCours] = useState(false);
   const navigate = useNavigate();
 
-  const soumettre = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setErreur(null);
-    setEnCours(true);
     try {
-      if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password: motDePasse,
-        });
-        if (error) throw error;
-        if (data.user) {
-          const { error: e2 } = await supabase
-            .from("profiles")
-            .insert({ id: data.user.id, nom, role: "PUBLIC" });
-          if (e2) throw e2;
-        }
+      if (isSignUp) {
+        await sInscrire(email, password);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password: motDePasse,
-        });
-        if (error) throw error;
+        await seConnecter(email, password);
       }
       navigate("/");
-    } catch (e) {
-      setErreur(e.message);
-    } finally {
-      setEnCours(false);
+    } catch (err) {
+      setErreur(err.message);
     }
   };
 
   return (
-    <form className={styles.form} onSubmit={soumettre}>
-      <h2>{mode === "signup" ? "Creer un compte" : "Se connecter"}</h2>
-
-      {mode === "signup" && (
-        <label className={styles.champ}>
-          Nom d'affichage
-          <input
-            type="text"
-            value={nom}
-            onChange={e => setNom(e.target.value)}
-            required
-          />
-        </label>
-      )}
-
-      <label className={styles.champ}>
-        Email
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-      </label>
-
-      <label className={styles.champ}>
-        Mot de passe
-        <input
-          type="password"
-          value={motDePasse}
-          onChange={e => setMotDePasse(e.target.value)}
-          minLength="6"
-          required
-        />
-      </label>
-
-      {erreur && <p className={styles.erreur}>{erreur}</p>}
-
-      <button type="submit" disabled={enCours} className={styles.bouton}>
-        {enCours ? "..." : mode === "signup" ? "Creer le compte" : "Se connecter"}
+    <div style={{ padding: "20px" }}>
+      <h2>{isSignUp ? "Inscription" : "Connexion"}</h2>
+      {erreur && <p style={{ color: "red" }}>{erreur}</p>}
+      <form onSubmit={handleSubmit}>
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <button type="submit">{isSignUp ? "S'inscrire" : "Se connecter"}</button>
+      </form>
+      <button onClick={() => setIsSignUp(!isSignUp)}>
+        {isSignUp ? "Déjà un compte ? Se connecter" : "Pas de compte ? S'inscrire"}
       </button>
-
-      <button
-        type="button"
-        onClick={() => setMode(mode === "signup" ? "login" : "signup")}
-        className={styles.basculer}
-      >
-        {mode === "signup" ? "Deja un compte ? Se connecter" : "Pas encore de compte ? Creer"}
-      </button>
-    </form>
+    </div>
   );
 };
 

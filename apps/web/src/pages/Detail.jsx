@@ -1,71 +1,32 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
-import styles from "./Detail.module.css";
-import BoutonInscription from "../components/BoutonInscription";
-import { supabase } from "../lib/supabase";
+import { useParams, useNavigate } from "react";
+import { supprimerEvenement } from "@senevent/shared";
 
 const Detail = ({ evenements, session }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const evenement = evenements.find((e) => e.id === Number(id));
 
-  const evenement = evenements.find(ev => ev.id === Number(id));
+  if (!evenement) return <p>Événement non trouvé.</p>;
 
-  if (!evenement) {
-    return (
-      <div className={styles.container}>
-        <p>Evenement introuvable.</p>
-        <Link to="/" className={styles.retour}>Retour a la liste</Link>
-      </div>
-    );
-  }
-
-  const prix = evenement.prix === 0 ? "Gratuit" : `${evenement.prix} FCFA`;
-  const date = new Date(evenement.date_debut).toLocaleString("fr-FR");
-
-  const supprimer = async () => {
-    const confirme = window.confirm("Supprimer cet evenement ?");
-    if (!confirme) return;
-
-    const { error } = await supabase
-      .from("evenements")
-      .delete()
-      .eq("id", evenement.id);
-
-    if (error) {
-      alert("Erreur : " + error.message);
-    } else {
-      navigate("/");
+  const handleSupprimer = async () => {
+    if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
+      try {
+        await supprimerEvenement(evenement.id);
+        navigate("/");
+      } catch (err) {
+        alert(err.message);
+      }
     }
   };
 
   return (
-    <div className={styles.container}>
-      <button onClick={() => navigate(-1)} className={styles.retour}>
-        &lt;- Retour
-      </button>
-      <BoutonInscription evenementId={evenement.id} session={session} />
-
-      <h1 className={styles.titre}>{evenement.titre}</h1>
-      <p className={styles.meta}>
-        <span className={styles.categorie}>{evenement.categorie}</span>
-      </p>
-
-      <img
-        src={evenement.image_url}
-        alt={evenement.titre}
-        className={styles.image}
-      />
-
-      <dl className={styles.infos}>
-        <dt>Lieu</dt><dd>{evenement.lieu_nom}</dd>
-        <dt>Date</dt><dd>{date}</dd>
-        <dt>Prix</dt><dd className={styles.prix}>{prix}</dd>
-        <dt>Organise par</dt>
-        <dd>{evenement.profiles ? evenement.profiles.nom : "Equipe SenEvent"}</dd>
-      </dl>
-
-      {session && evenement.organisateur_id && String(session.user.id) === String(evenement.organisateur_id) && (
-        <button onClick={supprimer} className={styles.supprimer}>
-          Supprimer cet evenement
+    <div style={{ padding: "20px" }}>
+      <h2>{evenement.titre}</h2>
+      <p>{evenement.lieu_nom}</p>
+      <p>{evenement.prix} FCFA</p>
+      {session && session.user && session.user.id === evenement.organisateur_id && (
+        <button onClick={handleSupprimer} style={{ backgroundColor: "red", color: "white" }}>
+          Supprimer
         </button>
       )}
     </div>
