@@ -6,7 +6,8 @@ const monorepoRoot = path.resolve(projectRoot, "../..");
 
 const config = getDefaultConfig(projectRoot);
 
-config.watchFolders = [monorepoRoot];
+// Expo's default watchFolders already cover every workspace of the monorepo
+// (root, apps/web, apps/mobile, packages/shared): keep them untouched.
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(monorepoRoot, "node_modules"),
