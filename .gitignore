@@ -4,3 +4,4 @@
 .env*.local
 node_modules/
 apps/mobile/.env
+.vercel
